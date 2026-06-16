@@ -28,7 +28,7 @@ final class XWingTests: XCTestCase {
         _ encapsulated: Data,
         file: StaticString = #filePath,
         line: UInt = #line
-    ) throws -> CryptoKit.SymmetricKey {
+    ) throws -> SymmetricKey {
         let sharedSecret = try privateKey.decapsulate(encapsulated)
         let oneTimeSharedSecret = try XWingMLKEM768X25519.OneTimePrivateKey(reusingForTestingOnly: privateKey).decapsulate(encapsulated)
         XCTAssertEqual(sharedSecret, oneTimeSharedSecret, "one-time decapsulation diverged from regular decapsulation", file: file, line: line)
@@ -63,11 +63,11 @@ final class XWingTests: XCTestCase {
     func testXWingMLKEM768X25519TestVectors() throws {
         let katTests = try processKATFile(filename:"test-vectors")
         for katTest in katTests {
-            let privateKeyDrbg = try CryptoKit.SequenceDrbg(katTest.seed)
+            let privateKeyDrbg = try SequenceDrbg(katTest.seed)
             let privateKey = try XWingMLKEM768X25519.PrivateKey.generateWithRng(rngState: privateKeyDrbg)
             XCTAssertEqual(privateKey.publicKey.rawRepresentation, katTest.pk)
 
-            let encapDrbg = try CryptoKit.SequenceDrbg(katTest.eseed)
+            let encapDrbg = try SequenceDrbg(katTest.eseed)
             let encapsulatedKey = try privateKey.publicKey.encapsulateWithRng(rngState: encapDrbg)
             XCTAssertEqual(encapsulatedKey.encapsulated, katTest.ct)
             XCTAssertEqual(encapsulatedKey.sharedSecret.dataRepresentation, katTest.ss)
