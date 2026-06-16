@@ -79,7 +79,7 @@ class HPKETests: XCTestCase {
         let skR = SK.PublicKey.EphemeralPrivateKey()
         let info = Data("Some Test Data".utf8)
         
-        let psk = SymmetricKey(size: CryptoKit.SymmetricKeySize.bits256)
+        let psk = SymmetricKey(size: SymmetricKeySize.bits256)
         let pskID = Data(SHA256.hash(data: info))
         
         // Testing base mode
