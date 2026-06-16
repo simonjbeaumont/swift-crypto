@@ -48,6 +48,9 @@ public struct HKDF<H: HashFunction>: Sendable {
     ///   - info: The shared information to use for key derivation.
     ///   - outputKey: An output span that will be populated with the derived
     ///   symmetric key.
+    #if swift(<6.3)
+    @_lifetime(outputKey: copy outputKey)
+    #endif
     public static func deriveKey(inputKeyMaterial: SymmetricKey,
                                  salt: RawSpan? = nil,
                                  info: RawSpan? = nil,
@@ -255,6 +258,9 @@ public struct HKDF<H: HashFunction>: Sendable {
     ///   - outputByteCount: The length in bytes of the resulting symmetric key.
     ///
     /// - Returns: The derived symmetric key.
+    #if swift(<6.3)
+    @_lifetime(output: copy output)
+    #endif
     public static func expand(pseudoRandomKey prk: RawSpan, info: RawSpan?, into output: inout OutputRawSpan) {
         let iterations: UInt8 = UInt8((Double(output.freeCapacity) / Double(H.Digest.byteCount)).rounded(.up))
 
