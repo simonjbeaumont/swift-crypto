@@ -11,7 +11,12 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
 import Foundation
+#endif
 
 /// This is a not-very-performant decoder of the RFC formatted test vectors.
 ///
@@ -25,10 +30,6 @@ struct RFCVectorDecoder {
     private var index: Int?
 
     init(bundleType: AnyObject, fileName: String) throws {
-        #if !CRYPTO_IN_SWIFTPM
-        let bundle = Bundle(for: type(of: bundleType))
-        let fileURL = bundle.url(forResource: fileName, withExtension: "txt")
-        #else
         var fileURL: URL? = URL(fileURLWithPath: "\(#filePath)")
         for _ in 0..<3 {
             fileURL!.deleteLastPathComponent()
@@ -44,7 +45,6 @@ struct RFCVectorDecoder {
         #else
         fileURL! = fileURL!.appendingPathComponent("Test Vectors", isDirectory: true)
         fileURL! = fileURL!.appendingPathComponent("\(fileName).txt", isDirectory: false)
-        #endif
         #endif
 
         let rfcVectorData = try Data(contentsOf: fileURL!)

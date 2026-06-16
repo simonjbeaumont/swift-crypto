@@ -11,20 +11,12 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
 import XCTest
 
-
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-// Skip tests that use @available annotations on tests unless running on Linux.
-#else
-#if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-import CryptoKit
-#else
 import Crypto
-#endif
 
 class SymmetricKeyTests: XCTestCase {
-    @available(macOS 27, iOS 27, watchOS 27, tvOS 27, visionOS 27, *)
     func testBytesZeroing() throws {
         var myData: [UInt8] = [1, 2, 3, 4, 5, 6, 7, 8]
 
@@ -52,4 +44,3 @@ extension RawSpan {
         }
     }
 }
-#endif // CRYPTO_IN_SWIFTPM

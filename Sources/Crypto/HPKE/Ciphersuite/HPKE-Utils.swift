@@ -11,31 +11,15 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+
+#if canImport(CryptoKit)
 @_exported import CryptoKit
 #else
 
-#if CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
-import SwiftSystem
-#else
 #if canImport(FoundationEssentials)
-#if os(Windows)
-import ucrt
-#elseif canImport(Darwin)
-import Darwin
-#elseif canImport(Glibc)
-import Glibc
-#elseif canImport(Musl)
-import Musl
-#elseif canImport(Android)
-import Android
-#elseif canImport(WASILibc)
-import WASILibc
-#endif
 import FoundationEssentials
 #else
 import Foundation
-#endif
 #endif
 
 
@@ -43,11 +27,7 @@ internal func I2OSP(value: Int, outputByteCount: Int) -> Data {
     precondition(outputByteCount > 0, "Cannot I2OSP with no output length.")
     precondition(value >= 0, "I2OSP requires a non-null value.")
     
-    #if !CRYPTOKIT_NO_ACCESS_TO_FOUNDATION
     let requiredBytes = Int(ceil(log2(Double(max(value, 1) + 1)) / 8))
-    #else
-    let requiredBytes = Int((log2_bridge(Double(max(value, 1) + 1)) / 8).rounded(.up))
-    #endif
     
     precondition(outputByteCount >= requiredBytes)
     
@@ -60,4 +40,4 @@ internal func I2OSP(value: Int, outputByteCount: Int) -> Data {
     return data
 }
 
-#endif // Linux or !SwiftPM
+#endif // canImport(CryptoKit)

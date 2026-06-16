@@ -11,6 +11,7 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
 #if canImport(FoundationEssentials)
 import FoundationEssentials
 #else
@@ -18,17 +19,12 @@ import Foundation
 #endif
 import XCTest
 
+@testable import CryptoKit
 
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if canImport(CryptoKit)
 // Skip tests that require @testable imports of CryptoKit.
 #else
-#if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-@testable import CryptoKit
-@testable import CryptoKit
-@testable import CryptoKit
-#else
 @testable import Crypto
-#endif
 
 class HPKETests: XCTestCase {
     func testCases() throws {
@@ -70,7 +66,6 @@ class HPKETests: XCTestCase {
         }
     }
 
-    @available(iOS 26.0, macOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
     func testHPKECiphersuite<SK: HPKEKEMPrivateKey>(_ c: HPKE.Ciphersuite, withKeys: SK.Type) throws {
         let skR = try SK.PublicKey.EphemeralPrivateKey()
         let info = Data("Some Test Data".utf8)
@@ -84,7 +79,7 @@ class HPKETests: XCTestCase {
         let skR = SK.PublicKey.EphemeralPrivateKey()
         let info = Data("Some Test Data".utf8)
         
-        let psk = SymmetricKey(size: SymmetricKeySize.bits256)
+        let psk = SymmetricKey(size: CryptoKit.SymmetricKeySize.bits256)
         let pskID = Data(SHA256.hash(data: info))
         
         // Testing base mode
@@ -166,6 +161,17 @@ class HPKETests: XCTestCase {
         XCTAssertEqual(cc25519.aead.nonceByteCount, 12)
         XCTAssertEqual(cc25519.aead.tagByteCount, 16)
     }
+
+    func testHPKEKEMInterface() throws {
+        if #available(iOS 19.0, macOS 16.0, watchOS 12.0, tvOS 19.0, macCatalyst 19.0, *) {
+            let c = HPKE.Ciphersuite.XWingMLKEM768X25519_SHA256_AES_GCM_256
+            let skR = try XWingMLKEM768X25519.PrivateKey.generate()
+            let info = Data("Some Test Data".utf8)
+            var sender = try HPKE.Sender(recipientKey: skR.publicKey, ciphersuite: c, info: info)
+            var recipient = try HPKE.Recipient(privateKey: skR, ciphersuite: c, info: info, encapsulatedKey: sender.encapsulatedKey)
+            XCTAssertNoThrow(try testSenderRecipient(sender: &sender, recipient: &recipient))
+        }
+    }
 }
 
-#endif // CRYPTO_IN_SWIFTPM
+#endif // canImport(CryptoKit)

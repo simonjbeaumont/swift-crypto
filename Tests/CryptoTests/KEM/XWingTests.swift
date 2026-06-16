@@ -11,18 +11,13 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
 import XCTest
-#if CRYPTO_IN_SWIFTPM && !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
+#if canImport(CryptoKit)
 // Skip tests that require @testable imports of CryptoKit.
 #else
-#if !CRYPTO_IN_SWIFTPM_FORCE_BUILD_API
-@testable import CryptoKitPrivate
-@testable import CryptoKit
-#else
 @testable import Crypto
-#endif
 
-@available(iOS 26.0, macOS 26.0, watchOS 26.0, tvOS 26.0, macCatalyst 26.0, visionOS 26.0, *)
 final class XWingTests: XCTestCase {
     func testKEM() throws {
         let privateKey = try XWingMLKEM768X25519.PrivateKey.generate()
@@ -40,7 +35,6 @@ final class XWingTests: XCTestCase {
         XCTAssert(er.sharedSecret == ss)
     }
     
-    @available(iOS 27.0, macOS 27.0, watchOS 27.0, tvOS 27.0, macCatalyst 27.0, visionOS 27.0, *)
       func testOneTimeKeys() throws {
           let privateKey = try XWingMLKEM768X25519.OneTimePrivateKey.generate()
           let publicKey = privateKey.publicKey
@@ -56,11 +50,7 @@ final class XWingTests: XCTestCase {
       }
 
     func processKATFile(filename: String) throws -> [XWingKAT] {
-        #if CRYPTO_IN_SWIFTPM
         let bundle = Bundle.module
-        #else
-        let bundle = Bundle(for: type(of: self))
-        #endif
         let fileURL = bundle.url(forResource: filename, withExtension: "json")
         let json = try Data(contentsOf: fileURL!)
         let stringInput = String(data: json, encoding: .ascii)!
@@ -71,11 +61,11 @@ final class XWingTests: XCTestCase {
     func testXWingMLKEM768X25519TestVectors() throws {
         let katTests = try processKATFile(filename:"test-vectors")
         for katTest in katTests {
-            let privateKeyDrbg = try SequenceDrbg(katTest.seed)
+            let privateKeyDrbg = try CryptoKit.SequenceDrbg(katTest.seed)
             let privateKey = try XWingMLKEM768X25519.PrivateKey.generateWithRng(rngState: privateKeyDrbg)
             XCTAssertEqual(privateKey.publicKey.rawRepresentation, katTest.pk)
 
-            let encapDrbg = try SequenceDrbg(katTest.eseed)
+            let encapDrbg = try CryptoKit.SequenceDrbg(katTest.eseed)
             let encapsulatedKey = try privateKey.publicKey.encapsulateWithRng(rngState: encapDrbg)
             XCTAssertEqual(encapsulatedKey.encapsulated, katTest.ct)
             XCTAssertEqual(encapsulatedKey.sharedSecret.dataRepresentation, katTest.ss)
@@ -131,4 +121,4 @@ struct XWingKAT {
     }
 }
 
-#endif // CRYPTO_IN_SWIFTPM
+#endif // canImport(CryptoKit)
