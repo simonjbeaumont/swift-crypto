@@ -19,8 +19,6 @@ import Foundation
 #endif
 import XCTest
 
-@testable import CryptoKit
-
 #if canImport(CryptoKit)
 // Skip tests that require @testable imports of CryptoKit.
 #else

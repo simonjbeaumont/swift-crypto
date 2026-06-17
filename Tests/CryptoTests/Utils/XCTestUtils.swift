@@ -13,7 +13,6 @@
 //===----------------------------------------------------------------------===//
 
 import XCTest
-import CryptoKitPrivate
 
 // Xcode 11.4 catches errors thrown during tests and reports them on the
 // correct line. But Linux and older Xcodes do not, so we need to use this
@@ -65,19 +64,5 @@ func XCTAssertThrowsError<T, E: Error & Equatable>(
 {
     XCTAssertThrowsError(try expression(), message(), file: file, line: line) { foundError in
         XCTAssertEqual(foundError as? E, error, message(), file: file, line: line)
-    }
-}
-
-func XCTAssertThrowsCoreCryptoError<T>(
-    _ expression: @autoclosure () throws -> T,
-    error: Int,
-    _ message: @autoclosure () -> String = "",
-    file: StaticString = #filePath,
-    line: UInt = #line)
-{
-    XCTAssertThrowsError(try expression(), message(), file: file, line: line) { foundError in
-        XCTAssertEqual(foundError as? CryptoKitError,
-                       CryptoKitError.underlyingCoreCryptoError(error: Int32(error)),
-                       message(), file: file, line: line)
     }
 }
