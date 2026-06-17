@@ -17,7 +17,6 @@ import XCTest
 // Skip tests that require @testable imports of CryptoKit.
 #else
 @testable import Crypto
-import enum CryptoKit.CryptoKitError
 
 final class XWingTests: XCTestCase {
     /// Decapsulates with the regular private key and also with a one-time private key built from the
