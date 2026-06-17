@@ -168,13 +168,7 @@ let package = Package(
             dependencies: dependencies,
             exclude: privacyManifestExclude + [
                 "CMakeLists.txt",
-                "AEADs/Nonces.swift.gyb",
-                "Digests/Digests.swift.gyb",
-                "Key Agreement/ECDH.swift.gyb",
-                "Signatures/ECDSA.swift.gyb",
-                "Signatures/MLDSA.swift.gyb",
                 "Signatures/BoringSSL/MLDSA_boring.swift.gyb",
-                "KEM/MLKEM.swift.gyb",
                 "KEM/BoringSSL/MLKEM_boring.swift.gyb",
             ],
             resources: privacyManifestResource,
