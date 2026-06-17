@@ -12,6 +12,9 @@
 //
 //===----------------------------------------------------------------------===//
 
+#if canImport(CryptoKit)
+@_exported import CryptoKit
+#else
 
 extension InlineArray where Element == UInt8 {
     /// Copy of the bytes of the given raw span into this array. The span
@@ -85,3 +88,5 @@ extension UnsafeMutableRawBufferPointer {
         }
     }
 }
+
+#endif

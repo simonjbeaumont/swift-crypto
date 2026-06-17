@@ -11,19 +11,12 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-
-#if canImport(FoundationEssentials)
-import FoundationEssentials
-#else
-import Foundation
-#endif
 import XCTest
 
 #if canImport(CryptoKit)
-import Crypto
+// Skip tests that require @testable imports of CryptoKit.
 #else
-import Crypto
-#endif
+@testable import Crypto
 
 class ChaChaPolyTests: XCTestCase {
     func testIncorrectKeySize() throws {
@@ -251,3 +244,5 @@ class ChaChaPolyTests: XCTestCase {
         }
     }
 }
+
+#endif
