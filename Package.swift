@@ -29,18 +29,9 @@ import class Foundation.ProcessInfo
 // To develop this on Apple platforms, set this to true
 let development = false
 
-// Ideally, we should use `.when(platforms:)` to set `swiftSettings` and
-// `dependencies` like on other platforms. However, `Platform.freebsd` is not
-// yet available, and therefore we guard the settings behind this boolean.
-#if os(FreeBSD)
-let isFreeBSD = true
-#else
-let isFreeBSD = false
-#endif
-
 let swiftSettings: [SwiftSetting]
 let dependencies: [Target.Dependency]
-if development || isFreeBSD {
+if development {
     swiftSettings = [
         .define("CRYPTO_IN_SWIFTPM"),
         .define("CRYPTO_IN_SWIFTPM_FORCE_BUILD_API"),
@@ -55,11 +46,14 @@ if development || isFreeBSD {
     ]
 } else {
     let platforms: [Platform] = [
-        Platform.linux,
-        Platform.android,
-        Platform.windows,
-        Platform.wasi,
-        Platform.openbsd,
+        .linux,
+        .android,
+        .windows,
+        .wasi,
+        .openbsd,
+        // The SwiftPM Platform symbol is not yet public but the underlying platform name is set.
+        // -- https://github.com/swiftlang/swift-package-manager/blob/swift-6.2.3-RELEASE/Sources/PackageDescription/SupportedPlatforms.swift#L75
+        .custom("freebsd"),
     ]
     swiftSettings = [
         .define("CRYPTO_IN_SWIFTPM"),
