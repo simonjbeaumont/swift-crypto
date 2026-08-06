@@ -12,9 +12,6 @@
 //
 //===----------------------------------------------------------------------===//
 
-#if canImport(CryptoKit)
-@_exported import CryptoKit
-#else
 
 extension InlineArray where Element == UInt8 {
     /// Copy of the bytes of the given raw span into this array. The span
@@ -57,9 +54,7 @@ extension ContiguousArray where Element == UInt8 {
 
 extension OutputRawSpan {
     /// Append the contents of the given raw span to this output span.
-    #if swift(<6.3)
     @_lifetime(self: copy self)
-    #endif
     mutating func append(contentsOf bytes: RawSpan) {
         for i in 0..<bytes.byteCount {
             append(bytes.unsafeLoad(fromByteOffset: i, as: UInt8.self))
@@ -69,9 +64,6 @@ extension OutputRawSpan {
 
 extension OutputSpan<UInt8> {
     /// Append the contents of the given raw span to this output span.
-    #if swift(<6.3)
-    @_lifetime(self: copy self)
-    #endif
     mutating func append(contentsOf bytes: RawSpan) {
         for i in 0..<bytes.byteCount {
             append(bytes.unsafeLoad(fromByteOffset: i, as: UInt8.self))
@@ -88,5 +80,3 @@ extension UnsafeMutableRawBufferPointer {
         }
     }
 }
-
-#endif

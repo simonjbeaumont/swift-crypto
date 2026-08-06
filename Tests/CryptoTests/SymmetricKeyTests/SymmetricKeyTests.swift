@@ -14,10 +14,7 @@
 
 import XCTest
 
-#if canImport(CryptoKit)
-// Skip tests that require @testable imports of CryptoKit.
-#else
-@testable import Crypto
+import Crypto
 
 class SymmetricKeyTests: XCTestCase {
     func testBytesZeroing() throws {
@@ -47,4 +44,3 @@ extension RawSpan {
         }
     }
 }
-#endif

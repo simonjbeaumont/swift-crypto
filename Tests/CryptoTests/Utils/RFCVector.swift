@@ -284,14 +284,14 @@ extension ArraySlice where Element == Substring {
         // or begin with whitespace (these are used in some cases and we don't want them). This is a brute
         // force comparison, but it's test code, don't worry about it.
         let elements: [(String, String)] = self[..<nextCountIndex].filter { string in
-            return (string.trimmingWhitespace.count > 0 &&
+            return (string.trimmingCharacters(in: .whitespaces).count > 0 &&
                     !string.hasPrefix("#") &&
                     !string.hasPrefix("[") &&
                     !string.first!.isWhitespace)
         }.map { string in
             let split = string.split(separator: "=", maxSplits: 1, omittingEmptySubsequences: false)
             assert(split.count == 2)
-            return (String(split.first!.trimmingWhitespace), String(split.last!).trimmingWhitespace)
+            return (String(split.first!.trimmingCharacters(in: .whitespaces)), String(split.last!).trimmingCharacters(in: .whitespaces))
         }
 
         // Slice off the section we've parsed.
@@ -304,18 +304,5 @@ extension ArraySlice where Element == Substring {
         } else {
             return nil
         }
-    }
-}
-
-fileprivate extension StringProtocol {
-    /// Returns the string with leading and trailing whitespace removed.
-    var trimmingWhitespace: String { self.trimming { $0.isWhitespace } }
-
-    /// Returns a new string by removing leading and trailing characters
-    /// that satisfy the given predicate.
-    func trimming(while predicate: (Character) -> Bool) -> String {
-        guard let start = self.firstIndex(where: { !predicate($0) }) else { return "" }
-        let end = self.lastIndex(where: { !predicate($0) })!
-        return String(self[start...end])
     }
 }

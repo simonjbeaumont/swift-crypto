@@ -23,6 +23,7 @@ public import Foundation
 
 typealias MLKEMPublicKeyImpl = OpenSSLMLKEMPublicKeyImpl
 typealias MLKEMPrivateKeyImpl = OpenSSLMLKEMPrivateKeyImpl
+typealias MLKEMOneTimePrivateKeyImpl = OpenSSLMLKEMPrivateKeyImpl
 
 
 /// The Module-Lattice key encapsulation mechanism (KEM).
@@ -150,15 +151,25 @@ extension MLKEM768 {
     /// The associated decapsulation function can be multiple times faster than the one implemented for PrivateKey,
     /// but this private key can only be used to decapsulate a shared secret once.
     public struct OneTimePrivateKey: KEMOneTimePrivateKey, ~Copyable {
-        internal let impl: MLKEMPrivateKeyImpl<MLKEM768>
+        internal let impl: MLKEMOneTimePrivateKeyImpl<MLKEM768>
 
-        internal init(_ impl: MLKEMPrivateKeyImpl<MLKEM768>) {
+        internal init(_ impl: MLKEMOneTimePrivateKeyImpl<MLKEM768>) {
             self.impl = impl
+        }
+
+        /// Creates a one-time-use private key that reuses the key material of an existing private key.
+        ///
+        /// This is used by the tests to check that the one-time decapsulation function is consistent with the regular one.
+        internal init(reusingForTestingOnly privateKey: MLKEM768.PrivateKey) {
+            self.impl = try! MLKEMOneTimePrivateKeyImpl<MLKEM768>(
+                seedRepresentation: privateKey.impl.seedRepresentation,
+                publicKeyRawRepresentation: privateKey.impl.publicKey.rawRepresentation
+            )
         }
 
         /// Generates a new, random one-time-use private key.
         public static func generate() throws -> MLKEM768.OneTimePrivateKey {
-            let impl = try MLKEMPrivateKeyImpl<MLKEM768>.generatePrivateKey()
+            let impl = try MLKEMOneTimePrivateKeyImpl<MLKEM768>.generatePrivateKey()
             return OneTimePrivateKey(impl)
         }
 
@@ -311,15 +322,25 @@ extension MLKEM1024 {
     /// The associated decapsulation function can be multiple times faster than the one implemented for PrivateKey,
     /// but this private key can only be used to decapsulate a shared secret once.
     public struct OneTimePrivateKey: KEMOneTimePrivateKey, ~Copyable {
-        internal let impl: MLKEMPrivateKeyImpl<MLKEM1024>
+        internal let impl: MLKEMOneTimePrivateKeyImpl<MLKEM1024>
 
-        internal init(_ impl: MLKEMPrivateKeyImpl<MLKEM1024>) {
+        internal init(_ impl: MLKEMOneTimePrivateKeyImpl<MLKEM1024>) {
             self.impl = impl
+        }
+
+        /// Creates a one-time-use private key that reuses the key material of an existing private key.
+        ///
+        /// This is used by the tests to check that the one-time decapsulation function is consistent with the regular one.
+        internal init(reusingForTestingOnly privateKey: MLKEM1024.PrivateKey) {
+            self.impl = try! MLKEMOneTimePrivateKeyImpl<MLKEM1024>(
+                seedRepresentation: privateKey.impl.seedRepresentation,
+                publicKeyRawRepresentation: privateKey.impl.publicKey.rawRepresentation
+            )
         }
 
         /// Generates a new, random one-time-use private key.
         public static func generate() throws -> MLKEM1024.OneTimePrivateKey {
-            let impl = try MLKEMPrivateKeyImpl<MLKEM1024>.generatePrivateKey()
+            let impl = try MLKEMOneTimePrivateKeyImpl<MLKEM1024>.generatePrivateKey()
             return OneTimePrivateKey(impl)
         }
 
