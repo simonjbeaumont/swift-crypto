@@ -38,10 +38,16 @@ let nonDarwinPlatforms: [Platform] = [
     .custom("freebsd"),
 ]
 
-let swiftSettings: [SwiftSetting] = [
+var swiftSettings: [SwiftSetting] = [
     .define("CRYPTO_IN_SWIFTPM"),
     .enableExperimentalFeature("Lifetimes"),
+    .enableExperimentalFeature("SourceWarningControl"),
 ]
+
+// Only enable CheckImplementationOnly on 6.4 -- 6.3 has the feature, but produces many false positives.
+#if compiler(>=6.4)
+swiftSettings.append(.enableExperimentalFeature("CheckImplementationOnly"))
+#endif
 
 // This doesn't work when cross-compiling: the privacy manifest will be included in the Bundle and
 // Foundation will be linked. This is, however, strictly better than unconditionally adding the
@@ -98,6 +104,10 @@ let package = Package(
                     .when(platforms: [Platform.wasi])
                 ),
                 .define("OPENSSL_NO_ASM", .when(platforms: [Platform.wasi])),
+                // BoringSSL is vendored verbatim; we don't fix its warnings. Xcode enables
+                // -Wshorten-64-to-32 by default (SwiftPM does not), which produces dozens
+                // of warnings. Silence that group here.
+                .disableWarning("shorten-64-to-32"),
             ]
         ),
         .target(
@@ -113,6 +123,7 @@ let package = Package(
                 .headerSearchPath("low/KeccakP-1600"),
                 .headerSearchPath("low/common"),
                 .headerSearchPath("common"),
+                .disableWarning("macro-redefined"),
             ]
         ),
         .target(
@@ -141,6 +152,7 @@ let package = Package(
                 .target(name: "CXKCPShims", condition: .when(platforms: nonDarwinPlatforms)),
             ],
             exclude: privacyManifestExclude + [
+                "vendored-sources.txt",
                 "CMakeLists.txt",
                 "Signatures/BoringSSL/MLDSA_boring.swift.gyb",
                 "KEM/BoringSSL/MLKEM_boring.swift.gyb",

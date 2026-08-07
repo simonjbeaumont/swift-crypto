@@ -14,10 +14,16 @@
 
 // This is a copy ChaChaPoly_boring just with a different set aes algos
 
-@_implementationOnly import CCryptoBoringSSL
-@_implementationOnly import CCryptoBoringSSLShims
 import Crypto
 import CryptoBoringWrapper
+
+#if hasFeature(SourceWarningControl)
+@diagnose(ImplementationOnlyDeprecated, as: ignored) @_implementationOnly import CCryptoBoringSSL
+@diagnose(ImplementationOnlyDeprecated, as: ignored) @_implementationOnly import CCryptoBoringSSLShims
+#else
+@_implementationOnly import CCryptoBoringSSL
+@_implementationOnly import CCryptoBoringSSLShims
+#endif
 
 #if canImport(FoundationEssentials)
 import FoundationEssentials
@@ -92,7 +98,7 @@ enum OpenSSLAESGCMSIVImpl {
             )
         }
 
-        return try AES.GCM._SIV.SealedBox(combined: combined, nonceByteCount: nonce.bytes.count)
+        return AES.GCM._SIV.SealedBox(combined: combined, nonceByteCount: nonce.bytes.count)
     }
 
     @inlinable
