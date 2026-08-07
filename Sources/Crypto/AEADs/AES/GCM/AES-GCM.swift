@@ -88,21 +88,6 @@ extension AES {
             )
         }
 
-        // Note: historical version of the above, which should be removed once
-        // the above is API and clients move over to it.
-        #if swift(<6.3)
-        @_lifetime(message: copy message)
-        #endif
-        internal static func seal(
-            inplace message: inout MutableRawSpan,
-            using key: SymmetricKey,
-            nonce: RawSpan,
-            authenticating authenticatedData: RawSpan? = nil,
-            tag: inout OutputRawSpan
-        ) throws(CryptoKitMetaError) {
-            return try AESGCMImpl.seal(key: key, message: &message, nonce: nonce, authenticatedData: authenticatedData, tag: &tag)
-        }
-
         /// Decrypts the message and verifies the authenticity of both the
         /// encrypted message and additional data.
         ///
@@ -157,28 +142,6 @@ extension AES {
                     key: key,
                     message: &message,
                     nonce: nonce.bytes,
-                    authenticatedData: authenticatedData,
-                    tag: tag
-                )
-        }
-
-        // Note: historical version of the above, which should be removed once
-        // the above is API and clients move over to it.
-        #if swift(<6.3)
-        @_lifetime(message: copy message)
-        #endif
-        internal static func open(
-            inplace message: inout MutableRawSpan,
-            using key: SymmetricKey,
-            nonce: RawSpan,
-            tag: RawSpan,
-            authenticating authenticatedData: RawSpan? = nil
-        ) throws(CryptoKitMetaError) {
-            try AESGCMImpl
-                .open(
-                    key: key,
-                    message: &message,
-                    nonce: nonce,
                     authenticatedData: authenticatedData,
                     tag: tag
                 )

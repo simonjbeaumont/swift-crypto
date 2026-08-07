@@ -19,6 +19,22 @@ import XCTest
 @testable import Crypto
 
 final class XWingTests: XCTestCase {
+    /// Decapsulates with the regular private key and also with a one-time private key built from the
+    /// same key material, asserting that both paths recover the same shared secret. Returns the shared
+    /// secret so callers can run their own assertions (e.g. against a known-answer value), guaranteeing
+    /// the one-time and regular decapsulation functions are tested identically everywhere.
+    private func decapsulate(
+        with privateKey: XWingMLKEM768X25519.PrivateKey,
+        _ encapsulated: Data,
+        file: StaticString = #filePath,
+        line: UInt = #line
+    ) throws -> SymmetricKey {
+        let sharedSecret = try privateKey.decapsulate(encapsulated)
+        let oneTimeSharedSecret = try XWingMLKEM768X25519.OneTimePrivateKey(reusingForTestingOnly: privateKey).decapsulate(encapsulated)
+        XCTAssertEqual(sharedSecret, oneTimeSharedSecret, "one-time decapsulation diverged from regular decapsulation", file: file, line: line)
+        return sharedSecret
+    }
+
     func testKEM() throws {
         let privateKey = try XWingMLKEM768X25519.PrivateKey.generate()
 
@@ -30,24 +46,10 @@ final class XWingTests: XCTestCase {
         try XCTAssert(privateKey.integrityCheckedRepresentation == XWingMLKEM768X25519.PrivateKey(integrityCheckedRepresentation: privateKey.integrityCheckedRepresentation).integrityCheckedRepresentation)
 
         let er = try privateKey.publicKey.encapsulate()
-        let ss = try privateKey.decapsulate(er.encapsulated)
+        let ss = try decapsulate(with: privateKey, er.encapsulated)
 
         XCTAssert(er.sharedSecret == ss)
     }
-    
-      func testOneTimeKeys() throws {
-          let privateKey = try XWingMLKEM768X25519.OneTimePrivateKey.generate()
-          let publicKey = privateKey.publicKey
-                                                                                                                          
-          let er = try publicKey.encapsulate()
-          let ss = try privateKey.decapsulate(er.encapsulated)
-          XCTAssert(er.sharedSecret == ss)
-          
-          // The following would (and should) produce a compile-time error
-          // let er2 = try publicKey.encapsulate()
-          // let ss2 = try privateKey.decapsulate(er.encapsulated)
-          // XCTAssert(er2.sharedSecret == ss2)
-      }
 
     func processKATFile(filename: String) throws -> [XWingKAT] {
         let bundle = Bundle.module
@@ -69,7 +71,7 @@ final class XWingTests: XCTestCase {
             let encapsulatedKey = try privateKey.publicKey.encapsulateWithRng(rngState: encapDrbg)
             XCTAssertEqual(encapsulatedKey.encapsulated, katTest.ct)
             XCTAssertEqual(encapsulatedKey.sharedSecret.dataRepresentation, katTest.ss)
-            let retrievedSharedSecret = try privateKey.decapsulate(encapsulatedKey.encapsulated)
+            let retrievedSharedSecret = try decapsulate(with: privateKey, encapsulatedKey.encapsulated)
             XCTAssertEqual(retrievedSharedSecret.dataRepresentation, katTest.ss)
         }
     }

@@ -58,7 +58,7 @@ extension XWingMLKEM768X25519 {
     }
 
     public struct PrivateKey: KEMPrivateKey {
-        private var impl: XWingPrivateKeyImpl
+        var impl: XWingPrivateKeyImpl
 
         public var seedRepresentation: Data {
             get {
@@ -104,6 +104,13 @@ extension XWingMLKEM768X25519 {
 
         internal init(impl: XWingPrivateKeyImpl) {
             self.impl = impl
+        }
+
+        /// Creates a one-time-use private key that reuses the key material of an existing private key.
+        ///
+        /// This is used by the tests to check that the one-time decapsulation function is consistent with the regular one.
+        internal init(reusingForTestingOnly privateKey: XWingMLKEM768X25519.PrivateKey) {
+            self.impl = privateKey.impl
         }
 
         /// Generates a new, random one-time-use private key.

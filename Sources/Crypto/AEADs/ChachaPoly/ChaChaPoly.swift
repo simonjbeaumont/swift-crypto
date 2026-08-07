@@ -83,21 +83,6 @@ public enum ChaChaPoly: Cipher, Sendable {
         try ChaChaPolyImpl.encrypt(key: key, inPlace: &message, nonce: nonce.bytes, authenticatedData: authenticatedData, tag: &tag)
     }
 
-    // Note: historical version of the above, which should be removed once
-    // the above is API and clients move over to it.
-    #if swift(<6.3)
-    @_lifetime(message: copy message)
-    #endif
-    internal static func seal(
-        inplace message: inout MutableRawSpan,
-        using key: SymmetricKey,
-        nonce: RawSpan,
-        authenticating authenticatedData: RawSpan? = nil,
-        tag: inout OutputRawSpan
-    ) throws(CryptoKitMetaError) {
-        try ChaChaPolyImpl.encrypt(key: key, inPlace: &message, nonce: nonce, authenticatedData: authenticatedData, tag: &tag)
-    }
-
     /// Decrypts the message and verifies the authenticity of both the encrypted
     /// message and additional data.
     ///
@@ -150,21 +135,6 @@ public enum ChaChaPoly: Cipher, Sendable {
         tag: RawSpan
     ) throws(CryptoKitMetaError) {
         try ChaChaPolyImpl.decrypt(key: key, inPlace: &message, nonce: nonce.bytes, tag: tag, authenticatedData: authenticatedData)
-    }
-
-    // Note: historical version of the above, which should be removed once
-    // the above is API and clients move over to it.
-    #if swift(<6.3)
-    @_lifetime(message: copy message)
-    #endif
-    public static func open(
-        inplace message: inout MutableRawSpan,
-        using key: SymmetricKey,
-        nonce: RawSpan,
-        tag: RawSpan,
-        authenticating authenticatedData: RawSpan? = nil
-    ) throws(CryptoKitMetaError) {
-        try ChaChaPolyImpl.decrypt(key: key, inPlace: &message, nonce: nonce, tag: tag, authenticatedData: authenticatedData)
     }
 }
 
