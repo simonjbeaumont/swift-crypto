@@ -99,21 +99,6 @@ class ECDSASignature {
         )
     }
 
-    @usableFromInline
-    var derBytes: Data {
-        var dataPtr: UnsafeMutablePointer<UInt8>?
-        var length = 0
-        guard CCryptoBoringSSL_ECDSA_SIG_to_bytes(&dataPtr, &length, self._baseSig) == 1 else {
-            fatalError("Unable to marshal signature to DER")
-        }
-        defer {
-            // We must free this pointer.
-            CCryptoBoringSSL_OPENSSL_free(dataPtr)
-        }
-
-        return Data(UnsafeBufferPointer(start: dataPtr, count: length))
-    }
-
     func withUnsafeSignaturePointer<T>(
         _ body: (UnsafeMutablePointer<ECDSA_SIG>) throws -> T
     )

@@ -68,17 +68,6 @@ extension Data {
 }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-extension P256.Signing.ECDSASignature {
-    init<D: DataProtocol>(openSSLDERSignature derRepresentation: D) throws {
-        self.rawRepresentation = try Data(derSignature: derRepresentation, over: P256.self)
-    }
-
-    var openSSLDERRepresentation: Data {
-        try! ECDSASignature(rawRepresentation: self.rawRepresentation).derBytes
-    }
-}
-
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension P256.Signing.PrivateKey {
     func openSSLSignature<D: Digest>(for digest: D) throws -> P256.Signing.ECDSASignature {
         let baseSignature = try self.impl.key.sign(digest: digest)
@@ -105,17 +94,6 @@ extension P256.Signing.PublicKey {
 }
 
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-extension P384.Signing.ECDSASignature {
-    init<D: DataProtocol>(openSSLDERSignature derRepresentation: D) throws {
-        self.rawRepresentation = try Data(derSignature: derRepresentation, over: P384.self)
-    }
-
-    var openSSLDERRepresentation: Data {
-        try! ECDSASignature(rawRepresentation: self.rawRepresentation).derBytes
-    }
-}
-
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
 extension P384.Signing.PrivateKey {
     func openSSLSignature<D: Digest>(for digest: D) throws -> P384.Signing.ECDSASignature {
         let baseSignature = try self.impl.key.sign(digest: digest)
@@ -138,17 +116,6 @@ extension P384.Signing.PublicKey {
         }
 
         return self.impl.key.isValidSignature(baseSignature, for: digest)
-    }
-}
-
-@available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-extension P521.Signing.ECDSASignature {
-    init<D: DataProtocol>(openSSLDERSignature derRepresentation: D) throws {
-        self.rawRepresentation = try Data(derSignature: derRepresentation, over: P521.self)
-    }
-
-    var openSSLDERRepresentation: Data {
-        try! ECDSASignature(rawRepresentation: self.rawRepresentation).derBytes
     }
 }
 
