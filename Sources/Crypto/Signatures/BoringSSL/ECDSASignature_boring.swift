@@ -28,7 +28,7 @@ import Foundation
 
 /// A wrapper around BoringSSL's ECDSA_SIG with some lifetime management.
 @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-class ECDSASignature {
+final class ECDSASignature {
     private var _baseSig: UnsafeMutablePointer<ECDSA_SIG>
 
     init<ContiguousBuffer: ContiguousBytes>(contiguousDERBytes derBytes: ContiguousBuffer) throws {
