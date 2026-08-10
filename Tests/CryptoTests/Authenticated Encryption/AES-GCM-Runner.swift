@@ -11,12 +11,19 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+
+#if canImport(FoundationEssentials)
+import FoundationEssentials
+#else
+import Foundation
+#endif
 import XCTest
 
 #if canImport(CryptoKit)
-// Skip tests that require @testable imports of CryptoKit.
+import Crypto
 #else
-@testable import Crypto
+import Crypto
+#endif
 
 struct AEADTestGroup: Codable {
     let ivSize: Int
@@ -151,7 +158,7 @@ class AESGCMTests: XCTestCase {
         let ciphertext = Array("This pretty clearly isn't ciphertext, but sure why not".utf8)
         let (contiguousCiphertext, discontiguousCiphertext) = ciphertext.asDataProtocols()
 
-        let contiguousSB = try orFail { AES.GCM.SealedBox(combined: contiguousCiphertext) }
+        let contiguousSB = try orFail { try AES.GCM.SealedBox(combined: contiguousCiphertext) }
         let discontiguousSB = try orFail { try AES.GCM.SealedBox(combined: discontiguousCiphertext) }
         XCTAssertEqual(contiguousSB.combined, discontiguousSB.combined)
         XCTAssertEqual(Array(contiguousSB.nonce), Array(discontiguousSB.nonce))
@@ -283,4 +290,3 @@ class AESGCMTests: XCTestCase {
         }
     }
 }
-#endif

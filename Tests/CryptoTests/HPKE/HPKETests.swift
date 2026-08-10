@@ -19,6 +19,8 @@ import Foundation
 #endif
 import XCTest
 
+@testable import CryptoKit
+
 #if canImport(CryptoKit)
 // Skip tests that require @testable imports of CryptoKit.
 #else
@@ -77,7 +79,7 @@ class HPKETests: XCTestCase {
         let skR = SK.PublicKey.EphemeralPrivateKey()
         let info = Data("Some Test Data".utf8)
         
-        let psk = SymmetricKey(size: SymmetricKeySize.bits256)
+        let psk = SymmetricKey(size: CryptoKit.SymmetricKeySize.bits256)
         let pskID = Data(SHA256.hash(data: info))
         
         // Testing base mode

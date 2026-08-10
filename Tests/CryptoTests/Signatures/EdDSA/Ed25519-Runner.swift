@@ -14,11 +14,11 @@
 
 import XCTest
 
-import XCTest
 #if canImport(CryptoKit)
-// Skip tests that require @testable imports of CryptoKit.
+import Crypto
 #else
-@testable import Crypto
+import Crypto
+#endif
 
 struct Ed25519TestGroup: Codable {
     let tests: [Ed25519TestVector]
@@ -137,5 +137,3 @@ class Ed25519Tests: XCTestCase {
         }
     }
 }
-
-#endif

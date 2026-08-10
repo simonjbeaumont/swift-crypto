@@ -17,6 +17,7 @@ import XCTest
 // Skip tests that require @testable imports of CryptoKit.
 #else
 @testable import Crypto
+import enum CryptoKit.CryptoKitError
 
 final class XWingTests: XCTestCase {
     /// Decapsulates with the regular private key and also with a one-time private key built from the
@@ -28,7 +29,7 @@ final class XWingTests: XCTestCase {
         _ encapsulated: Data,
         file: StaticString = #filePath,
         line: UInt = #line
-    ) throws -> SymmetricKey {
+    ) throws -> CryptoKit.SymmetricKey {
         let sharedSecret = try privateKey.decapsulate(encapsulated)
         let oneTimeSharedSecret = try XWingMLKEM768X25519.OneTimePrivateKey(reusingForTestingOnly: privateKey).decapsulate(encapsulated)
         XCTAssertEqual(sharedSecret, oneTimeSharedSecret, "one-time decapsulation diverged from regular decapsulation", file: file, line: line)
@@ -63,11 +64,11 @@ final class XWingTests: XCTestCase {
     func testXWingMLKEM768X25519TestVectors() throws {
         let katTests = try processKATFile(filename:"test-vectors")
         for katTest in katTests {
-            let privateKeyDrbg = try SequenceDrbg(katTest.seed)
+            let privateKeyDrbg = try CryptoKit.SequenceDrbg(katTest.seed)
             let privateKey = try XWingMLKEM768X25519.PrivateKey.generateWithRng(rngState: privateKeyDrbg)
             XCTAssertEqual(privateKey.publicKey.rawRepresentation, katTest.pk)
 
-            let encapDrbg = try SequenceDrbg(katTest.eseed)
+            let encapDrbg = try CryptoKit.SequenceDrbg(katTest.eseed)
             let encapsulatedKey = try privateKey.publicKey.encapsulateWithRng(rngState: encapDrbg)
             XCTAssertEqual(encapsulatedKey.encapsulated, katTest.ct)
             XCTAssertEqual(encapsulatedKey.sharedSecret.dataRepresentation, katTest.ss)
@@ -92,6 +93,39 @@ final class XWingTests: XCTestCase {
         let exportedFormat = privateKey.integrityCheckedRepresentation
         let importedKey = try XWingMLKEM768X25519.PrivateKey.init(integrityCheckedRepresentation: exportedFormat)
         XCTAssertEqual(importedKey.seedRepresentation, privateKey.seedRepresentation)
+    }
+
+    func testDecapsulateInputValidation() throws {
+        let ciphersuite = HPKE.Ciphersuite.XWingMLKEM768X25519_SHA256_AES_GCM_256
+        let skR = try XWingMLKEM768X25519.PrivateKey.generate()
+
+        // Dummy key with the correct size fails with an error from the underlying implementation.
+        let corretlySizedKey = Data(repeating: 0x00, count: 1120)
+        XCTAssertThrowsError(
+            try HPKE.Recipient(
+                privateKey: skR,
+                ciphersuite: ciphersuite,
+                info: Data(),
+                encapsulatedKey: corretlySizedKey
+            ),
+            error: CryptoKitError.underlyingCoreCryptoError(error: -7)
+        )
+
+        // Keys with the wrong size fail input validation.
+        let keySizesToTest = [0, 1, 1119, 1221, 2000]
+        for keySize in keySizesToTest {
+            let wronglySizedKey = Data(repeating: 0x00, count: keySize)
+            XCTAssertThrowsError(
+                try HPKE.Recipient(
+                    privateKey: skR,
+                    ciphersuite: ciphersuite,
+                    info: Data(),
+                    encapsulatedKey: wronglySizedKey
+                ),
+                error: CryptoKitError.underlyingCoreCryptoError(error: -7),
+                "Unexpectedly returned from malformed decapsulation path for keySize \(keySize)"
+            )
+        }
     }
 }
 

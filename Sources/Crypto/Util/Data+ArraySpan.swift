@@ -11,9 +11,6 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
-#if canImport(CryptoKit)
-@_exported import CryptoKit
-#else
 
 #if canImport(FoundationEssentials)
 import FoundationEssentials
@@ -57,5 +54,3 @@ extension InlineArray where Element == UInt8 {
         }
     }
 }
-
-#endif
