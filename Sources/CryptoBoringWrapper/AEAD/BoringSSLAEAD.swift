@@ -41,7 +41,7 @@ extension BoringSSLAEAD {
     // Arguably this class is excessive, but it's probably better for this API to be as safe as possible
     // rather than rely on defer statements for our cleanup.
     @available(macOS 10.15, iOS 13, watchOS 6, tvOS 13, macCatalyst 13, visionOS 1.0, *)
-    public class AEADContext {
+    public final class AEADContext {
         private var context: EVP_AEAD_CTX
 
         public init<Key: ContiguousBytes>(cipher: BoringSSLAEAD, key: Key) throws {
