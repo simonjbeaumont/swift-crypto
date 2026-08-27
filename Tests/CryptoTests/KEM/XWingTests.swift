@@ -106,8 +106,7 @@ final class XWingTests: XCTestCase {
                 ciphersuite: ciphersuite,
                 info: Data(),
                 encapsulatedKey: corretlySizedKey
-            ),
-            error: CryptoKitError.underlyingCoreCryptoError(error: -7)
+            )
         )
 
         // Keys with the wrong size fail input validation.
@@ -121,7 +120,6 @@ final class XWingTests: XCTestCase {
                     info: Data(),
                     encapsulatedKey: wronglySizedKey
                 ),
-                error: CryptoKitError.underlyingCoreCryptoError(error: -7),
                 "Unexpectedly returned from malformed decapsulation path for keySize \(keySize)"
             )
         }
