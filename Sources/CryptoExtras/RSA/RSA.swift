@@ -535,6 +535,7 @@ extension _RSA.Encryption {
         ///
         /// This constructor supports key sizes of 2048 bits or more. Users should validate that key sizes are appropriate
         /// for their use-case.
+        /// The key's modulus bit length must also be a multiple of 8.
         public init(pemRepresentation: String) throws {
             self.backing = try BackingPublicKey(pemRepresentation: pemRepresentation)
             guard self.keySizeInBits >= 2048, self.keySizeInBits % 8 == 0 else { throw CryptoKitError.incorrectParameterSize }
@@ -544,6 +545,7 @@ extension _RSA.Encryption {
         ///
         /// This constructor supports key sizes of 1024 bits or more. Users should validate that key sizes are appropriate
         /// for their use-case.
+        /// The key's modulus bit length must also be a multiple of 8.
         /// - Warning: Key sizes less than 2048 are not recommended and should only be used for compatibility reasons.
         public init(unsafePEMRepresentation pemRepresentation: String) throws {
             self.backing = try BackingPublicKey(pemRepresentation: pemRepresentation)
@@ -554,6 +556,7 @@ extension _RSA.Encryption {
         ///
         /// This constructor supports key sizes of 2048 bits or more. Users should validate that key sizes are appropriate
         /// for their use-case.
+        /// The key's modulus bit length must also be a multiple of 8.
         public init<Bytes: DataProtocol>(derRepresentation: Bytes) throws {
             self.backing = try BackingPublicKey(derRepresentation: derRepresentation)
             guard self.keySizeInBits >= 2048, self.keySizeInBits % 8 == 0 else { throw CryptoKitError.incorrectParameterSize }
@@ -563,6 +566,7 @@ extension _RSA.Encryption {
         ///
         /// This constructor supports key sizes of 1024 bits or more. Users should validate that key sizes are appropriate
         /// for their use-case.
+        /// The key's modulus bit length must also be a multiple of 8.
         /// - Warning: Key sizes less than 2048 are not recommended and should only be used for compatibility reasons.
         public init<Bytes: DataProtocol>(unsafeDERRepresentation derRepresentation: Bytes) throws {
             self.backing = try BackingPublicKey(derRepresentation: derRepresentation)
@@ -579,6 +583,7 @@ extension _RSA.Encryption {
         public var derRepresentation: Data { self.backing.derRepresentation }
         public var pemRepresentation: String { self.backing.pemRepresentation }
         public var keySizeInBits: Int { self.backing.keySizeInBits }
+        internal var modulusByteCount: Int { self.backing.modulusByteCount }
         fileprivate init(_ backing: BackingPublicKey) { self.backing = backing }
 
         public func getKeyPrimitives() throws -> Primitives {
@@ -596,6 +601,7 @@ extension _RSA.Encryption {
         ///
         /// This constructor supports key sizes of 2048 bits or more. Users should validate that key sizes are appropriate
         /// for their use-case.
+        /// The key's modulus bit length must also be a multiple of 8.
         public init(pemRepresentation: String) throws {
             self.backing = try BackingPrivateKey(pemRepresentation: pemRepresentation)
             guard self.keySizeInBits >= 2048, self.keySizeInBits % 8 == 0 else { throw CryptoKitError.incorrectParameterSize }
@@ -605,6 +611,7 @@ extension _RSA.Encryption {
         ///
         /// This constructor supports key sizes of 1024 bits or more. Users should validate that key sizes are appropriate
         /// for their use-case.
+        /// The key's modulus bit length must also be a multiple of 8.
         /// - Warning: Key sizes less than 2048 are not recommended and should only be used for compatibility reasons.
         public init(unsafePEMRepresentation pemRepresentation: String) throws {
             self.backing = try BackingPrivateKey(pemRepresentation: pemRepresentation)
@@ -615,6 +622,7 @@ extension _RSA.Encryption {
         ///
         /// This constructor supports key sizes of 2048 bits or more. Users should validate that key sizes are appropriate
         /// for their use-case.
+        /// The key's modulus bit length must also be a multiple of 8.
         public init<Bytes: DataProtocol>(derRepresentation: Bytes) throws {
             self.backing = try BackingPrivateKey(derRepresentation: derRepresentation)
             guard self.keySizeInBits >= 2048, self.keySizeInBits % 8 == 0 else { throw CryptoKitError.incorrectParameterSize }
@@ -624,6 +632,7 @@ extension _RSA.Encryption {
         ///
         /// This constructor supports key sizes of 1024 bits or more. Users should validate that key sizes are appropriate
         /// for their use-case.
+        /// The key's modulus bit length must also be a multiple of 8.
         /// - Warning: Key sizes less than 2048 are not recommended and should only be used for compatibility reasons.
         public init<Bytes: DataProtocol>(unsafeDERRepresentation derRepresentation: Bytes) throws {
             self.backing = try BackingPrivateKey(derRepresentation: derRepresentation)
@@ -741,8 +750,8 @@ extension _RSA.Encryption {
 extension _RSA.Encryption.PrivateKey {
     /// Decrypt a message encrypted with this key's public key and using the specified padding mode.
     ///
-    /// > Important: The size of the data to decrypt must be equal to the block size of the key (e.g.
-    ///   `keySizeInBits / 8`). Attempting to decrypt data of the wrong size will fail.
+    /// > Important: The size of the data to decrypt must be equal to the block size of the key.
+    ///   Attempting to decrypt data of the wrong size will fail.
     public func decrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> Data {
         return try self.backing.decrypt(data, padding: padding)
     }
@@ -764,17 +773,17 @@ extension _RSA.Encryption.PublicKey {
         switch padding.backing {
         case ._weakAndInsecure_pkcs1v1_5:
             // https://www.rfc-editor.org/rfc/rfc8017#section-7.2
-            return (self.keySizeInBits / 8) - 11
+            return self.modulusByteCount - 11
         case let .pkcs1_oaep(Digest):
             // https://datatracker.ietf.org/doc/html/rfc8017#section-7.1.1
-            return (self.keySizeInBits / 8) - (2 * Digest.hashBitLength / 8) - 2
+            return self.modulusByteCount - (2 * Digest.hashBitLength / 8) - 2
         }
     }
     
     /// Encrypt a message with this key, using the specified padding mode.
     ///
-    /// > Important: The size of the data to encrypt _must_ not exceed the modulus of the key (e.g.
-    ///   `keySizeInBits / 8`), minus any additional space required by the padding mode. Attempting to
+    /// > Important: The size of the data to encrypt _must_ not exceed the block size of the key,
+    ///   minus any additional space required by the padding mode. Attempting to
     ///   encrypt data larger than this will fail. Use ``maximumEncryptSize(with:)`` to determine
     ///   exactly how many bytes can be encrypted by the key.
     public func encrypt<D: DataProtocol>(_ data: D, padding: _RSA.Encryption.Padding) throws -> Data {
