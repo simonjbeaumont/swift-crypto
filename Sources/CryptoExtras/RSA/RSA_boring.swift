@@ -77,6 +77,10 @@ internal struct BoringSSLRSAPublicKey: Sendable {
         self.backing.keySizeInBits
     }
 
+    var modulusByteCount: Int {
+        self.backing.modulusByteCount
+    }
+
     fileprivate init(_ backing: Backing) {
         self.backing = backing
     }
@@ -345,7 +349,12 @@ extension BoringSSLRSAPublicKey {
 
         fileprivate var keySizeInBits: Int {
             let rsaPublicKey = CCryptoBoringSSL_EVP_PKEY_get0_RSA(self.pointer)
-            return Int(CCryptoBoringSSL_RSA_size(rsaPublicKey)) * 8
+            return Int(CCryptoBoringSSL_RSA_bits(rsaPublicKey))
+        }
+
+        fileprivate var modulusByteCount: Int {
+            let rsaPublicKey = CCryptoBoringSSL_EVP_PKEY_get0_RSA(self.pointer)
+            return Int(CCryptoBoringSSL_RSA_size(rsaPublicKey))
         }
 
         fileprivate func isValidSignature<D: Digest>(
@@ -457,7 +466,6 @@ extension BoringSSLRSAPublicKey {
             parameters: _RSA.BlindSigning.Parameters<H>
         ) throws -> _RSA.BlindSigning.BlindingResult {
             let rsaPublicKey = CCryptoBoringSSL_EVP_PKEY_get0_RSA(self.pointer)
-            let modulusByteCount = Int(CCryptoBoringSSL_RSA_size(rsaPublicKey))
             let e = try ArbitraryPrecisionInteger(copying: CCryptoBoringSSL_RSA_get0_e(rsaPublicKey))
             let n = try ArbitraryPrecisionInteger(copying: CCryptoBoringSSL_RSA_get0_n(rsaPublicKey))
             let finiteField = try FiniteFieldArithmeticContext(fieldSize: n)
@@ -515,7 +523,6 @@ extension BoringSSLRSAPublicKey {
             parameters: _RSA.BlindSigning.Parameters<H>
         ) throws -> _RSA.Signing.RSASignature {
             let rsaPublicKey = CCryptoBoringSSL_EVP_PKEY_get0_RSA(self.pointer)
-            let modulusByteCount = Int(CCryptoBoringSSL_RSA_size(rsaPublicKey))
             let n = try ArbitraryPrecisionInteger(copying: CCryptoBoringSSL_RSA_get0_n(rsaPublicKey))
             let finiteField = try FiniteFieldArithmeticContext(fieldSize: n)
 
@@ -815,7 +822,7 @@ extension BoringSSLRSAPrivateKey {
 
         fileprivate var keySizeInBits: Int {
             let rsaPrivateKey = CCryptoBoringSSL_EVP_PKEY_get0_RSA(self.pointer)
-            return Int(CCryptoBoringSSL_RSA_size(rsaPrivateKey)) * 8
+            return Int(CCryptoBoringSSL_RSA_bits(rsaPrivateKey))
         }
 
         fileprivate var publicKey: BoringSSLRSAPublicKey {
